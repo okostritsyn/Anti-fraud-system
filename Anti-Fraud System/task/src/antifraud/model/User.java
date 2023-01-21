@@ -33,6 +33,7 @@ public class User implements UserDetails {
     @PostConstruct
     private void init(){
         dateOfCreation = LocalDateTime.now();
+        active = true;
     }
 
     @Override

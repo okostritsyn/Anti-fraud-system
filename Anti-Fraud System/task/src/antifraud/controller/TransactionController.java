@@ -5,8 +5,10 @@ import antifraud.model.request.UserCreationRequest;
 import antifraud.model.response.TransactionResultResponse;
 import antifraud.model.response.UserCreationResultResponse;
 import antifraud.model.response.UserDeleteResponse;
-import antifraud.service.AuthorizationService;
+import antifraud.service.UserService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import antifraud.service.TransactionService;
 
@@ -17,7 +19,7 @@ import java.util.List;
 @AllArgsConstructor
 public class TransactionController {
     TransactionService transactionService;
-    AuthorizationService authorizationService;
+    UserService userService;
 
     @PostMapping(value ="/api/antifraud/transaction")
     TransactionResultResponse transaction(@RequestBody @Valid TransactionRequest req){
@@ -26,20 +28,25 @@ public class TransactionController {
     }
 
     @PostMapping(value ="/api/auth/user")
-    UserCreationResultResponse transaction(@RequestBody @Valid UserCreationRequest user){
-        var result = authorizationService.createUser(user);
-        //return new TransactionResultResponse(result);
+    ResponseEntity<?> createUser(@RequestBody @Valid UserCreationRequest user){
+        var userEntity = userService.mapUserDTOToEntity(user);
+        var status = userService.createUser(userEntity);
+        if (status){
+            var userResponse = new UserCreationResultResponse(userEntity.getId(),userEntity.getName(),userEntity.getUsername());
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(userResponse);
+        }
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .build();
     }
 
     @GetMapping(value ="/api/auth/list")
-    List<UserCreationResultResponse> transaction(){
-        var result = authorizationService.createUser(user);
-        //return new TransactionResultResponse(result);
+    List<UserCreationResultResponse> getListOfUsers(){
+        return null;
     }
 
-    @DeleteMapping(value ="/api/auth/user")
-    UserDeleteResponse transaction(@RequestParam @Valid String user){
-        var result = authorizationService.createUser(user);
-        //return new TransactionResultResponse(result);
+    @DeleteMapping(value ="/api/auth/user/{username}")
+    UserDeleteResponse deleteUsers(@PathVariable String username){
+      return null;
     }
 }
