@@ -15,8 +15,11 @@ public class CustomUserDetailService implements UserDetailsService {
     private final UserRepository userRepository;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        log.info("authorization for "+username);
-
-        return userRepository.findByName(username);
+        log.info("success authorization for " + username);
+        var curruser = userRepository.findByName(username);
+        if (curruser != null){
+            log.info("success authorization for role " + curruser.getRoles().stream().findFirst().get().name());
+        }
+        return curruser;
     }
 }

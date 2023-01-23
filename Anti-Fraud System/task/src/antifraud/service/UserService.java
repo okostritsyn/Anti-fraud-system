@@ -23,7 +23,16 @@ public class UserService {
         if (userRepository.findByName(user.getUsername()) != null) {
             return false;
         }
-        user.getRoles().add(Role.ROLE_USER);
+        var listOfUsers = getListOfUsers();
+
+        if (listOfUsers.size()==0) {
+            user.addRole(Role.ADMINISTRATOR);
+            user.setActive(true);
+        }else{
+            user.addRole(Role.MERCHANT);
+            user.setActive(false);
+        }
+
         userRepository.save(user);
         log.info("Create user with name "+user.getUsername());
         return true;
@@ -58,6 +67,28 @@ public class UserService {
     }
 
     public UserResultResponse mapUserToUserDTO(User userEntity){
-        return new UserResultResponse(userEntity.getId(),userEntity.getName(),userEntity.getUsername());
+        var rolesSet = userEntity.getRoles();
+        String currRole = "";
+        if (!rolesSet.isEmpty()) currRole = rolesSet.stream().findFirst().get().name();
+        return new UserResultResponse(userEntity.getId(),userEntity.getName(),userEntity.getUsername(),currRole);
+    }
+
+    public Role getRoleByName(String role) {
+        try{
+            return Role.valueOf(role);
+        } catch (IllegalArgumentException ex){
+            log.error("Try to set role "+role+" which is no exist!",ex);
+            return null;
+        }
+    }
+
+    public void addRoleForUser(User user, Role currRole) {
+        user.addRole(currRole);
+        userRepository.save(user);
+    }
+
+    public void setActiveStatusUser(User user,boolean status) {
+        user.setActive(status);
+        userRepository.save(user);
     }
 }

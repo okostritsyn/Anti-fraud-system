@@ -36,7 +36,6 @@ public class User implements UserDetails {
 
     public User() {
         this.dateOfCreation = LocalDateTime.now();
-        this.active = true;
     }
 
     @Override
@@ -67,5 +66,11 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return active;
+    }
+
+    public void addRole(Role currRole) {
+        if (currRole == null) return;
+        roles.clear();
+        roles.add(currRole);
     }
 }

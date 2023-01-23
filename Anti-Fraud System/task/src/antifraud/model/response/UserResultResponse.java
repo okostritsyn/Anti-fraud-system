@@ -10,10 +10,11 @@ public class UserResultResponse {
     Long id;
     String name;
     String username;
-
-    public UserResultResponse(Long id, String name, String username) {
+    String role;
+    public UserResultResponse(Long id, String name, String username, String role) {
         this.id = id;
         this.name = name;
         this.username = username;
+        this.role = role;
     }
 }
