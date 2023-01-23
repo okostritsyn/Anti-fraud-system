@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.*;
@@ -18,8 +19,9 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String userName;
-    @Column(unique = true)
+    @Column(name ="username")
+    private String username;
+    @Column(name ="name",unique = true)
     private String name;
     private String password;
     @ElementCollection(targetClass = Role.class,fetch = FetchType.EAGER)
@@ -27,13 +29,14 @@ public class User implements UserDetails {
     joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
     private Set<Role> roles = new HashSet<>();
+    @Column(name ="active")
     private boolean active;
+    @Column(name ="dateOfCreation")
     private LocalDateTime dateOfCreation;
 
-    @PostConstruct
-    private void init(){
-        dateOfCreation = LocalDateTime.now();
-        active = true;
+    public User() {
+        this.dateOfCreation = LocalDateTime.now();
+        this.active = true;
     }
 
     @Override
@@ -43,7 +46,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return name;
+        return username;
     }
 
     @Override

@@ -27,7 +27,10 @@ public class SecurityConfig {
                 .csrf().disable().headers().frameOptions().disable() // for Postman, the H2 console
                 .and()
                 .authorizeRequests() // manage access
+                //.antMatchers(HttpMethod.POST, "/api/antifraud/transaction").hasRole("USER")
                 .antMatchers(HttpMethod.POST, "/api/auth/user").permitAll()
+                //.antMatchers(HttpMethod.GET, "/api/auth/list").hasRole("USER")
+                //.antMatchers(HttpMethod.DELETE, "/api/auth/user/{username}").hasRole("USER")
                 .antMatchers("/actuator/shutdown").permitAll() // needs to run test
                 // other matchers
                 .and()

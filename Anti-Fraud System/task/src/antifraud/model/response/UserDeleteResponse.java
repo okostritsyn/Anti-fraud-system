@@ -2,16 +2,22 @@ package antifraud.model.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Value;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-@Value
+@Getter@Setter@AllArgsConstructor
 public class UserDeleteResponse {
-    String username;
+    private String username;
     @JsonIgnore
-    UserDeleteStatus status;
+    private UserDeleteStatus status;
 
     @JsonProperty("status")
-    String getStatus(){
+    public String getStatus(){
         return status.getMessage();
+    }
+
+    public void setStatus(UserDeleteStatus status){
+        this.status = status;
     }
 }
