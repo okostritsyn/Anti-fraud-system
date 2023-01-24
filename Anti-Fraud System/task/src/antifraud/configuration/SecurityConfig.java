@@ -27,10 +27,12 @@ public class SecurityConfig {
                 .csrf().disable().headers().frameOptions().disable() // for Postman, the H2 console
                 .and()
                 .authorizeRequests() // manage access
-                .antMatchers(HttpMethod.POST, "/api/antifraud/transaction").hasRole("MERCHANT")
+                .antMatchers(HttpMethod.POST,"/api/antifraud/transaction/**").hasRole("MERCHANT")
                 .antMatchers(HttpMethod.POST, "/api/auth/user").permitAll()
-                //.antMatchers(HttpMethod.GET, "/api/auth/list").hasRole("MERCHANT")
-                //.antMatchers(HttpMethod.DELETE, "/api/auth/user/{username}").hasRole("MERCHANT")
+                .antMatchers(HttpMethod.GET, "/api/auth/list/**").hasAnyRole(new String[]{"ADMINISTRATOR", "SUPPORT"})
+                .antMatchers(HttpMethod.DELETE, "/api/auth/user/**").hasRole("ADMINISTRATOR")
+                .antMatchers(HttpMethod.PUT, "/api/auth/role/**").hasRole("ADMINISTRATOR")
+                .antMatchers(HttpMethod.PUT, "/api/auth/access/**").hasRole("ADMINISTRATOR")
                 .antMatchers("/actuator/shutdown").permitAll() // needs to run test
                 // other matchers
                 .and()
@@ -48,7 +50,6 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManagerBean(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
-        authenticationManagerBuilder.inMemoryAuthentication();
         return authenticationManagerBuilder.build();
     }
 }

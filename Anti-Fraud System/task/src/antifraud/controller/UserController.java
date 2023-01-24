@@ -12,7 +12,6 @@ import antifraud.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -42,8 +41,6 @@ public class UserController {
     }
 
     @GetMapping(value ="/list")
-    @PreAuthorize("hasRole('ADMINISTRATOR') " +
-            "|| hasRole('SUPPORT')")
     List<UserResultResponse> getListOfUsers(){
         var usersList = userService.getListOfUsers();
         var listResponse =  new ArrayList<UserResultResponse>();
@@ -57,7 +54,6 @@ public class UserController {
     }
 
     @DeleteMapping(value ="/user/{username}")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     ResponseEntity<?> deleteUsers(@PathVariable String username){
         var user = userService.findByName(username);
         boolean status = false;
@@ -74,7 +70,6 @@ public class UserController {
     }
 
     @PutMapping(value ="/role")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     ResponseEntity<?> SetRoleForUser(@RequestBody @Valid UserRoleSetRequest userRole){
         var currRole = userService.getRoleByName(userRole.getRole());
 
@@ -105,7 +100,6 @@ public class UserController {
     }
 
     @PutMapping(value ="/access")
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
     Map<String,String> giveAccessUser(@RequestBody @Valid UserAccessRequest userAccess){
         if (!userAccess.getOperation().equals("LOCK") && !userAccess.getOperation().equals("UNLOCK")){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);

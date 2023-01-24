@@ -68,8 +68,8 @@ public class UserService {
 
     public UserResultResponse mapUserToUserDTO(User userEntity){
         var rolesSet = userEntity.getRoles();
-        String currRole = "";
-        if (!rolesSet.isEmpty()) currRole = rolesSet.stream().findFirst().get().name();
+        Role currRole = null;
+        if (!rolesSet.isEmpty()) currRole = rolesSet.stream().findFirst().get();
         return new UserResultResponse(userEntity.getId(),userEntity.getName(),userEntity.getUsername(),currRole);
     }
 

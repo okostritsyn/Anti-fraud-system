@@ -4,9 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -19,9 +16,9 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name ="username")
+    @Column(name ="username",unique = true)
     private String username;
-    @Column(name ="name",unique = true)
+    @Column(name ="name")
     private String name;
     private String password;
     @ElementCollection(targetClass = Role.class,fetch = FetchType.EAGER)
