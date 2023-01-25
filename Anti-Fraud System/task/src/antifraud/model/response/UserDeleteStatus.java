@@ -1,8 +1,7 @@
 package antifraud.model.response;
 
 public enum UserDeleteStatus {
-    SUCCESS("Deleted successfully!"),
-    USER_NOT_FOUND("User not found!");
+    SUCCESS("Deleted successfully!");
 
     private final String message;
 
