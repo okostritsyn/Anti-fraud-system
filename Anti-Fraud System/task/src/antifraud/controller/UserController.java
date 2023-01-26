@@ -98,6 +98,10 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,"User not found!");
         }
 
+        if (userService.getRoleForUser(user) == Role.ADMINISTRATOR){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Cannot change access for ADMINISTRATOR");
+        }
+
         var status = userAccess.getOperation().equals("UNLOCK");
         var currStatusStr = status?"unlocked":"locked";
         userService.setActiveStatusUser(user,status);

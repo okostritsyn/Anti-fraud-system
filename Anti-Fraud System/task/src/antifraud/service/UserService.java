@@ -91,4 +91,9 @@ public class UserService {
         user.setActive(status);
         userRepository.save(user);
     }
+
+    public Role getRoleForUser(User user) {
+        var rolesSet = user.getRoles();
+        return rolesSet.stream().findFirst().orElse(null);
+    }
 }

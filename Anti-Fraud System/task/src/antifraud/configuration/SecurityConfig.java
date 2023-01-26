@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -14,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
@@ -28,6 +30,8 @@ public class SecurityConfig {
                 .and()
                 .authorizeRequests() // manage access
                 .antMatchers(HttpMethod.POST,"/api/antifraud/transaction/**").hasRole("MERCHANT")
+                .antMatchers("/api/antifraud/suspicious-ip/**").hasRole("SUPPORT")
+                .antMatchers("/api/antifraud/stolencard/**").hasRole("SUPPORT")
                 .antMatchers(HttpMethod.POST, "/api/auth/user").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/auth/list/**").hasAnyRole(new String[]{"ADMINISTRATOR", "SUPPORT"})
                 .antMatchers(HttpMethod.DELETE, "/api/auth/user/**").hasRole("ADMINISTRATOR")
