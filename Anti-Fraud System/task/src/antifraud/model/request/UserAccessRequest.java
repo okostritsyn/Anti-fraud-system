@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 @Getter
@@ -11,7 +12,9 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 public class UserAccessRequest {
     @NotNull
+    @NotEmpty
     String username;
     @NotNull
+    @NotEmpty
     String operation;
 }

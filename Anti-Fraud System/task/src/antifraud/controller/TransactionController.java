@@ -2,6 +2,7 @@ package antifraud.controller;
 
 import antifraud.model.Card;
 import antifraud.model.IPAddress;
+import antifraud.model.Region;
 import antifraud.model.request.CardRequest;
 import antifraud.model.request.IPAddressRequest;
 import antifraud.model.request.TransactionRequest;
@@ -29,12 +30,20 @@ public class TransactionController {
 
     @PostMapping(value ="/transaction")
     TransactionResultResponse transaction(@RequestBody @Valid TransactionRequest req){
-       if (!ipAddressService.validateIPAddress(req.getIp())){
-           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"IP validate failed!");
-       }
-       if (!cardService.validateNumber(req.getNumber())){
-           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Number validate failed!");
-       }
+        if (req.getRegion() == Region.INVALID) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Region validate failed!");
+        }
+        if (req.getDate() == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Date validate failed!");
+        }
+
+        if (!ipAddressService.validateIPAddress(req.getIp())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "IP validate failed!");
+        }
+        if (!cardService.validateNumber(req.getNumber())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Number validate failed!");
+        }
+
        return transactionService.processTransaction(req);
     }
 
