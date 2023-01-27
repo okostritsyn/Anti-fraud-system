@@ -10,6 +10,7 @@ import antifraud.model.response.UserDeleteStatus;
 import antifraud.model.response.UserResultResponse;
 import antifraud.service.UserService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -20,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/auth")
@@ -63,7 +65,9 @@ public class UserController {
 
     @PutMapping(value ="/role")
     UserResultResponse SetRoleForUser(@RequestBody @Valid UserRoleSetRequest userRole){
-        var currRole = userService.getRoleByName(userRole.getRole());
+        var currRole = userRole.getRole();
+
+        if (currRole == Role.INVALID) log.error("Try to set role "+currRole+" which is no exist!");
 
         if (currRole != Role.MERCHANT && currRole != Role.SUPPORT){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);

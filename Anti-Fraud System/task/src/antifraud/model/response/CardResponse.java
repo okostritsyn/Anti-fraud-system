@@ -1,13 +1,9 @@
 package antifraud.model.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Value;
 
-@AllArgsConstructor
-@Getter
-@Setter
+@Value
 public class CardResponse {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     Long id;

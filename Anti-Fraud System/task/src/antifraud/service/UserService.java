@@ -57,11 +57,11 @@ public class UserService {
         return status;
     }
 
-    public User mapUserDTOToEntity(UserCreationRequest UserDTO){
+    public User mapUserDTOToEntity(UserCreationRequest userDTO){
         var user = new User();
-        user.setUsername(UserDTO.getUsername());
-        user.setName(UserDTO.getName());
-        user.setPassword(passwordEncoder.encode(UserDTO.getPassword()));
+        user.setUsername(userDTO.getUsername());
+        user.setName(userDTO.getName());
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
         return user;
     }
@@ -71,15 +71,6 @@ public class UserService {
         Role currRole = null;
         if (!rolesSet.isEmpty()) currRole = rolesSet.stream().findFirst().get();
         return new UserResultResponse(userEntity.getId(),userEntity.getName(),userEntity.getUsername(),currRole);
-    }
-
-    public Role getRoleByName(String role) {
-        try{
-            return Role.valueOf(role);
-        } catch (IllegalArgumentException ex){
-            log.error("Try to set role "+role+" which is no exist!",ex);
-            return null;
-        }
     }
 
     public void addRoleForUser(User user, Role currRole) {

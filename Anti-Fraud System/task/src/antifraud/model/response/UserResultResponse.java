@@ -2,13 +2,12 @@ package antifraud.model.response;
 
 import antifraud.model.Role;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Value;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
-@Getter@Setter
+@Value
 public class UserResultResponse {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     Long id;

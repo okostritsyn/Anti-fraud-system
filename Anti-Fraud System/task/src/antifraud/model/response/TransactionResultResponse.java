@@ -1,6 +1,5 @@
 package antifraud.model.response;
 
-import lombok.AllArgsConstructor;
 import lombok.Value;
 
 @Value

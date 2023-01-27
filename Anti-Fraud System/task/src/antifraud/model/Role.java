@@ -1,11 +1,25 @@
 package antifraud.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.security.core.GrantedAuthority;
 
 public enum Role implements GrantedAuthority {
    MERCHANT,
    ADMINISTRATOR,
-   SUPPORT;
+   SUPPORT,
+
+    @JsonProperty("SHOULD NEVER ACTUALLY APPEAR IN REQUEST JSON")
+    INVALID;
+
+    @JsonCreator
+    public static Role valueOfOrInvalid(String name) {
+        try {
+            return Role.valueOf(name);
+        } catch (IllegalArgumentException e) {
+            return INVALID;
+        }
+    }
 
    @Override
    public String getAuthority() {

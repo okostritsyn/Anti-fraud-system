@@ -1,5 +1,6 @@
 package antifraud.model.request;
 
+import antifraud.model.Role;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,7 +15,7 @@ public class UserRoleSetRequest {
     @NotNull
     @NotEmpty
     String username;
+
     @NotNull
-    @NotEmpty
-    String role;
+    Role role;
 }

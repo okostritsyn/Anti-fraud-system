@@ -18,11 +18,25 @@ public class Transaction {
     @Column
     private String number;
     @Column
-    private int amount;
+    private Long amount;
+
+    @Column
+    private String region;
+
     @Column(name ="dateOfCreation")
     private LocalDateTime dateOfCreation;
 
     public Transaction() {
         this.dateOfCreation = LocalDateTime.now();
+    }
+
+    @Override
+    public String toString() {
+        return "Transaction{" +
+                "ip='" + ip + '\'' +
+                ", number='" + number + '\'' +
+                ", region=" + region +
+                ", dateOfCreation=" + dateOfCreation +
+                '}';
     }
 }

@@ -13,8 +13,8 @@ public class IPAddress {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name ="ip",unique = true)
-    private String ip;
+    @Column(name ="address",unique = true)
+    private String address;
     @Column(name ="dateOfCreation")
     private LocalDateTime dateOfCreation;
 

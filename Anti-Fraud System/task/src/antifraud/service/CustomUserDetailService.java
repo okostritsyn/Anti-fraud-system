@@ -1,5 +1,6 @@
 package antifraud.service;
 
+import antifraud.model.Role;
 import antifraud.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,10 +17,11 @@ public class CustomUserDetailService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         log.info("success authorization for " + username);
-        var curruser = userRepository.findByName(username);
-        if (curruser != null){
-            log.info("success authorization for role " + curruser.getRoles().stream().findFirst().get().name());
+        var currUser = userRepository.findByName(username);
+        if (currUser != null){
+            var currRole = currUser.getRoles().stream().findFirst().orElse(Role.INVALID).name();
+            log.info("success authorization for role " + currRole);
         }
-        return curruser;
+        return currUser;
     }
 }

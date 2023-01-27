@@ -16,8 +16,4 @@ public class UserDeleteResponse {
     public String getStatus(){
         return status.getMessage();
     }
-
-    public void setStatus(UserDeleteStatus status){
-        this.status = status;
-    }
 }
