@@ -1,12 +1,14 @@
 package antifraud.controller;
 
-import antifraud.model.Role;
+import antifraud.mapper.UserMapper;
+import antifraud.model.enums.Role;
 import antifraud.model.User;
+import antifraud.model.enums.UserAccessOperation;
 import antifraud.model.request.UserAccessRequest;
 import antifraud.model.request.UserCreationRequest;
 import antifraud.model.request.UserRoleSetRequest;
 import antifraud.model.response.UserDeleteResponse;
-import antifraud.model.response.UserDeleteStatus;
+import antifraud.model.enums.UserDeleteStatus;
 import antifraud.model.response.UserResultResponse;
 import antifraud.service.UserService;
 import lombok.AllArgsConstructor;
@@ -27,16 +29,17 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class UserController {
     UserService userService;
+    UserMapper userMapper;
 
     @PostMapping(value ="/user")
     @ResponseStatus(HttpStatus.CREATED)
     UserResultResponse createUser(@RequestBody @Valid UserCreationRequest user){
-        var userEntity = userService.mapUserDTOToEntity(user);
+        var userEntity = userMapper.mapUserDTOToEntity(user);
         var status = userService.createUser(userEntity);
         if (!status){
             throw new ResponseStatusException(HttpStatus.CONFLICT,"User already exist!");
         }
-        return userService.mapUserToUserDTO(userEntity);
+        return userMapper.mapUserToUserDTO(userEntity);
     }
 
     @GetMapping(value ="/list")
@@ -45,7 +48,7 @@ public class UserController {
         var listResponse =  new ArrayList<UserResultResponse>();
 
         for (User user:usersList) {
-            var currUser = userService.mapUserToUserDTO(user);
+            var currUser = userMapper.mapUserToUserDTO(user);
             listResponse.add(currUser);
         }
 
@@ -86,12 +89,12 @@ public class UserController {
 
         userService.addRoleForUser(user,currRole);
 
-        return userService.mapUserToUserDTO(user);
+        return userMapper.mapUserToUserDTO(user);
     }
 
     @PutMapping(value ="/access")
     Map<String,String> giveAccessUser(@RequestBody @Valid UserAccessRequest userAccess){
-        if (!userAccess.getOperation().equals("LOCK") && !userAccess.getOperation().equals("UNLOCK")){
+        if (userAccess.getOperation() == UserAccessOperation.INVALID){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Wrong input data format!");
         }
 
@@ -106,8 +109,8 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Cannot change access for ADMINISTRATOR");
         }
 
-        var status = userAccess.getOperation().equals("UNLOCK");
-        var currStatusStr = status?"unlocked":"locked";
+        var status = userAccess.getOperation().equals(UserAccessOperation.UNLOCK);
+        var currStatusStr = userAccess.getOperation().getMessage();
         userService.setActiveStatusUser(user,status);
 
         var message = "User "+userAccess.getUsername()+" "+currStatusStr+"!";

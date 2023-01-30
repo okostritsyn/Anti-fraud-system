@@ -1,23 +1,22 @@
 package antifraud.model.request;
 
-import antifraud.model.enums.Role;
+import antifraud.model.enums.TransactionResult;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @ToString
-public class UserRoleSetRequest {
+
+public class TransactionFeedbackRequest {
     @NotNull
-    @NotEmpty
-    String username;
+    private Long transactionId;
 
     @NotNull
-    Role role;
+    private TransactionResult feedback;
 }

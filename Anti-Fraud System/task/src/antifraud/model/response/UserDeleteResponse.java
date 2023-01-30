@@ -1,5 +1,6 @@
 package antifraud.model.response;
 
+import antifraud.model.enums.UserDeleteStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

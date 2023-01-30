@@ -1,6 +1,6 @@
 package antifraud.model.response;
 
-import antifraud.model.Role;
+import antifraud.model.enums.Role;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Value;
 

@@ -1,7 +1,7 @@
 package antifraud.model.request;
 
 
-import antifraud.model.Region;
+import antifraud.model.enums.Region;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,4 +36,5 @@ public class TransactionRequest {
     @NotNull
     @JsonFormat(pattern=  "yyyy-MM-dd'T'HH:mm:ss")
     Date date;
+
 }

@@ -1,5 +1,6 @@
 package antifraud.model.response;
 
+import antifraud.model.enums.TransactionResult;
 import lombok.Value;
 
 @Value

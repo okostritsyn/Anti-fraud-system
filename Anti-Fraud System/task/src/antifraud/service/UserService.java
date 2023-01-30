@@ -1,14 +1,11 @@
 package antifraud.service;
 
-import antifraud.model.Role;
+import antifraud.model.enums.Role;
 import antifraud.model.User;
-import antifraud.model.request.UserCreationRequest;
-import antifraud.model.response.UserResultResponse;
 import antifraud.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -17,7 +14,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
     public boolean createUser(User user){
         if (userRepository.findByName(user.getUsername()) != null) {
@@ -55,22 +51,6 @@ public class UserService {
             log.error("An error while delete user named "+user.getUsername(),ex);
         }
         return status;
-    }
-
-    public User mapUserDTOToEntity(UserCreationRequest userDTO){
-        var user = new User();
-        user.setUsername(userDTO.getUsername());
-        user.setName(userDTO.getName());
-        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-
-        return user;
-    }
-
-    public UserResultResponse mapUserToUserDTO(User userEntity){
-        var rolesSet = userEntity.getRoles();
-        Role currRole = null;
-        if (!rolesSet.isEmpty()) currRole = rolesSet.stream().findFirst().get();
-        return new UserResultResponse(userEntity.getId(),userEntity.getName(),userEntity.getUsername(),currRole);
     }
 
     public void addRoleForUser(User user, Role currRole) {

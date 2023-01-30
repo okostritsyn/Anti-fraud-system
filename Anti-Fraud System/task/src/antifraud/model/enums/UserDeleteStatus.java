@@ -1,4 +1,4 @@
-package antifraud.model.response;
+package antifraud.model.enums;
 
 public enum UserDeleteStatus {
     SUCCESS("Deleted successfully!");

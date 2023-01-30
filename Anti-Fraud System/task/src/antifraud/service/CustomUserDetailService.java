@@ -1,6 +1,6 @@
 package antifraud.service;
 
-import antifraud.model.Role;
+import antifraud.model.enums.Role;
 import antifraud.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

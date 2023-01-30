@@ -1,62 +1,62 @@
 package antifraud.service;
 
+import antifraud.configuration.TransactionProperties;
+import antifraud.mapper.CardMapper;
 import antifraud.model.Card;
-import antifraud.model.request.CardRequest;
-import antifraud.model.response.CardResponse;
+import antifraud.model.enums.TypeOfOperationForLimit;
 import antifraud.repository.CardRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.validator.routines.checkdigit.LuhnCheckDigit;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 public class CardService {
     private final CardRepository cardRepository;
+    private final CardMapper cardMapper;
+    private final TransactionProperties props;
 
     public boolean validateNumber(String cardNumber) {
         return LuhnCheckDigit.LUHN_CHECK_DIGIT.isValid(cardNumber);
     }
 
-    public Card mapCardDTOToEntity(CardRequest req) {
-        var card = new Card();
-        card.setNumber(req.getNumber());
+    public Card findCreateCardByNumber(String number) {
+        var currCard = cardRepository.findByNumber(number);
+        if ( currCard != null) {
+            return currCard;
+        }
+        currCard = cardMapper.mapStringNumberToEntity(number);
+        return createCard(currCard);
+    }
+
+    public Card createCard(Card card) {
+        card.setStolen(false);
+        card.setMax_ALLOWED(props.getAllowedAmount());
+        card.setMax_MANUAL(props.getManualProcessingAmount());
+        cardRepository.save(card);
+        log.info("Registered card with number "+card.getNumber());
         return card;
     }
 
-    public boolean saveCard(Card card) {
-        if (cardRepository.findByNumber(card.getNumber()) != null) {
-            return false;
-        }
+    public void updateLimitsForCard(Card card, TypeOfOperationForLimit type, Long amount) {
+        var maxAllowed = calculateLimitForType(card.getMax_ALLOWED(),type,amount);
+        var maxManual = calculateLimitForType(card.getMax_MANUAL(),type,amount);
+
+        card.setMax_ALLOWED(maxAllowed);
+        card.setMax_MANUAL(maxManual);
         cardRepository.save(card);
-        log.info("Registered card with number "+card.getNumber());
-        return true;
+        log.info("Change limits for card with number "+card.getNumber());
     }
 
-    public CardResponse mapCardToCardDTO(Card card) {
-        return new CardResponse(card.getId(),card.getNumber());
-    }
-
-    public List<Card> getListOfCards() {
-        return cardRepository.findAll();
-    }
-
-    public Card findByNumber(String number){
-        return cardRepository.findByNumber(number);
-    }
-
-    public boolean deleteCard(Card card){
-        boolean status = false;
-        try {
-            cardRepository.delete(card);
-            status = true;
-        }catch (OptimisticLockingFailureException ex) {
-            log.error("An error while delete card with number "+card.getNumber(),ex);
+    private long calculateLimitForType(long current_limit, TypeOfOperationForLimit type, Long amount) {
+        var new_limit = current_limit;
+        if(type == TypeOfOperationForLimit.INCREASE){
+            new_limit = (long) Math.ceil(0.8 * current_limit + 0.2 * amount);
+        } else if (type == TypeOfOperationForLimit.DECREASE){
+            new_limit = (long) Math.ceil(0.8 * current_limit - 0.2 * amount);
         }
-        return status;
+        return new_limit;
     }
 }

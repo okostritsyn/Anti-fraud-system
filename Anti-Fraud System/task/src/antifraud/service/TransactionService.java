@@ -1,9 +1,10 @@
 package antifraud.service;
 
-import antifraud.configuration.TransactionProperties;
+import antifraud.mapper.TransactionMapper;
 import antifraud.model.Transaction;
+import antifraud.model.enums.TypeOfOperationForLimit;
 import antifraud.model.request.TransactionRequest;
-import antifraud.model.response.TransactionResult;
+import antifraud.model.enums.TransactionResult;
 import antifraud.model.response.TransactionResultResponse;
 import antifraud.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,14 +23,20 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TransactionService {
     private final IPAddressService ipAddressService;
+    private final StolenCardService stolenCardService;
+    private final TransactionMapper transactionMapper;
     private final CardService cardService;
-    private final TransactionProperties props;
     private final TransactionRepository transactionRepository;
 
-    private TransactionResult checkTransactionAmount(long amount) {
-        if (amount <= props.getAllowedAmount()) {
+    private TransactionResult getTransactionResultByAmount(Transaction transaction) {
+        var amount = transaction.getAmount();
+
+        var maxAllowed = transaction.getCard().getMax_ALLOWED();
+        var maxManual = transaction.getCard().getMax_MANUAL();
+
+        if (amount <= maxAllowed) {
             return  TransactionResult.ALLOWED;
-        }else if (amount <= props.getManualProcessingAmount()) {
+        }else if (amount <= maxManual) {
             return  TransactionResult.MANUAL_PROCESSING;
         } else  {
             return  TransactionResult.PROHIBITED;
@@ -38,7 +45,7 @@ public class TransactionService {
 
     private TransactionResult checkTransactionCardNumberInBlackList(TransactionRequest req) {
         TransactionResult resultTransaction = TransactionResult.ALLOWED;
-        if (cardService.findByNumber(req.getNumber()) != null) {
+        if (stolenCardService.findByNumber(req.getNumber()) != null) {
             resultTransaction = TransactionResult.PROHIBITED;
         }
         return resultTransaction;
@@ -53,15 +60,18 @@ public class TransactionService {
     }
 
     private List<Transaction> getListOfTransactionFromHistory(TransactionRequest req) {
+        var card = cardService.findCreateCardByNumber(req.getNumber());
         var endDate = req.getDate().toInstant()
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime();
         var startDate = endDate.minusHours(1);
-        return transactionRepository.findByNumberAndDateOfCreationBetween(req.getNumber(),startDate,endDate);
+        log.info("------------try to find transaction by card "+card+" and date "+startDate+" end date "+endDate);
+        return transactionRepository.findByCardAndDateOfCreationBetween(card,startDate,endDate);
     }
 
     private TransactionResult checkTransactionFieldInHistory(List<Transaction> transactions, Function<Transaction,String> field) {
         TransactionResult resultTransaction = TransactionResult.ALLOWED;
+        log.info("----------list of transactions "+transactions);
         var count = transactions.stream().map(field).distinct().count();
         if (count > 3) {
             resultTransaction = TransactionResult.PROHIBITED;
@@ -71,37 +81,32 @@ public class TransactionService {
         return resultTransaction;
     }
 
-    private void saveTransactionInHistory(TransactionRequest req){
-        var transaction = mapTransactionDTOToEntity(req);
+    private Transaction saveTransactionInHistory(TransactionRequest req){
+        var transaction = transactionMapper.mapTransactionDTOToEntity(req);
         transactionRepository.save(transaction);
         log.info("Create transaction with card number "+transaction.getNumber());
-    }
-
-    private Transaction mapTransactionDTOToEntity(TransactionRequest transactionRequest){
-        var transaction = new Transaction();
-        transaction.setAmount(transactionRequest.getAmount());
-        transaction.setIp(transactionRequest.getIp());
-        transaction.setNumber(transactionRequest.getNumber());
-        transaction.setRegion(transactionRequest.getRegion().toString());
-        transaction.setDateOfCreation(transactionRequest.getDate().toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime());
         return transaction;
     }
 
+    private void addTransactionResultToHistory(Transaction transaction, TransactionResult result){
+        transaction.setResult(result);
+        transactionRepository.save(transaction);
+        log.info("Update result for transaction with card number "+transaction.getNumber());
+    }
+
     public TransactionResultResponse processTransaction(TransactionRequest req) {
-        saveTransactionInHistory(req);
+        var transaction = saveTransactionInHistory(req);
         List<Transaction> listOfTransactionFromHistory = getListOfTransactionFromHistory(req);
 
         StringJoiner joiner = new StringJoiner(",");
-        var resultAmount = checkTransactionAmount(req.getAmount());
+        var transactionResultByAmount = getTransactionResultByAmount(transaction);
 
-        if (resultAmount != TransactionResult.ALLOWED) {
+        if (transactionResultByAmount != TransactionResult.ALLOWED) {
             joiner.add("amount");
         }
 
         TransactionResult currResult = checkTransactionCardNumberInBlackList(req);
-        TransactionResult resultTransaction = resultAmount;
+        TransactionResult resultTransaction = transactionResultByAmount;
         if (currResult != TransactionResult.ALLOWED) {
             resultTransaction = currResult;
             joiner.add("card-number");
@@ -127,7 +132,7 @@ public class TransactionService {
 
         String[] statuses = joiner.toString().split(",");
 
-        boolean resultEqual = resultTransaction == resultAmount;
+        boolean resultEqual = resultTransaction == transactionResultByAmount;
         String messageInfo = Arrays.stream(statuses).
                 filter(s -> resultEqual || !s.equals("amount")).
                 sorted().
@@ -135,7 +140,40 @@ public class TransactionService {
 
         messageInfo = messageInfo.isEmpty()?"none":messageInfo;
 
+        addTransactionResultToHistory(transaction,resultTransaction);
+
         return new TransactionResultResponse(resultTransaction,messageInfo);
     }
 
+    public List<Transaction> getTransactionByNumber(String number) {
+        var card = cardService.findCreateCardByNumber(number);
+        return transactionRepository.findByCard(card);
+    }
+
+    public List<Transaction> getAllTransactions() {
+        return transactionRepository.findAll();
+    }
+
+    public void setFeedbackToTransaction(Transaction transaction, TransactionResult feedback) {
+        transaction.setFeedback(feedback);
+        transactionRepository.save(transaction);
+        log.info("Update feedback for transaction with card number "+transaction.getNumber());
+    }
+
+    public Transaction getTransactionById(Long transactionId) {
+        return transactionRepository.getReferenceById(transactionId);
+    }
+
+    public TypeOfOperationForLimit getTypeOfOperationForLimit(Transaction transaction) {
+        if (transaction.getFeedback() == TransactionResult.ALLOWED){
+            return TypeOfOperationForLimit.INCREASE;
+        }
+        if (transaction.getFeedback() == TransactionResult.PROHIBITED){
+            return TypeOfOperationForLimit.DECREASE;
+        }
+        if (transaction.getFeedback() == TransactionResult.MANUAL_PROCESSING){
+            return transaction.getResult() == TransactionResult.ALLOWED?TypeOfOperationForLimit.DECREASE:TypeOfOperationForLimit.INCREASE;
+        }
+        return TypeOfOperationForLimit.NOCHANGE;
+    }
 }

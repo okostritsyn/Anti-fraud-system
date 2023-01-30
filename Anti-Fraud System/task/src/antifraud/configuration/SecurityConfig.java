@@ -32,6 +32,8 @@ public class SecurityConfig {
                 .antMatchers(HttpMethod.POST,"/api/antifraud/transaction/**").hasRole("MERCHANT")
                 .antMatchers("/api/antifraud/suspicious-ip/**").hasRole("SUPPORT")
                 .antMatchers("/api/antifraud/stolencard/**").hasRole("SUPPORT")
+                .antMatchers(HttpMethod.GET, "/api/antifraud/history/**").hasRole("SUPPORT")
+                .antMatchers(HttpMethod.PUT, "/api/antifraud/transaction/**").hasRole("SUPPORT")
                 .antMatchers(HttpMethod.POST, "/api/auth/user").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/auth/list/**").hasAnyRole(new String[]{"ADMINISTRATOR", "SUPPORT"})
                 .antMatchers(HttpMethod.DELETE, "/api/auth/user/**").hasRole("ADMINISTRATOR")

@@ -1,8 +1,6 @@
 package antifraud.service;
 
 import antifraud.model.IPAddress;
-import antifraud.model.request.IPAddressRequest;
-import antifraud.model.response.IPAddressResultResponse;
 import antifraud.repository.IPAddressRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,12 +21,6 @@ public class IPAddressService {
         return validator.isValidInet4Address(ipAddress);
     }
 
-    public IPAddress mapIPDTOToEntity(IPAddressRequest req) {
-        var address = new IPAddress();
-        address.setAddress(req.getIp());
-
-        return address;
-    }
 
     public boolean createIP(IPAddress ipEntity) {
         if (ipAddressRepository.findByIP(ipEntity.getAddress()) != null) {
@@ -37,10 +29,6 @@ public class IPAddressService {
         ipAddressRepository.save(ipEntity);
         log.info("Registered address with ip "+ipEntity.getAddress());
         return true;
-    }
-
-    public IPAddressResultResponse mapIPToIPDTO(IPAddress ipEntity) {
-        return new IPAddressResultResponse(ipEntity.getId(),ipEntity.getAddress());
     }
 
     public List<IPAddress> getListOfAddresses() {

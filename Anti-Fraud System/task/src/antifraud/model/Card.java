@@ -17,6 +17,13 @@ public class Card {
     private String number;
     @Column(name ="dateOfCreation")
     private LocalDateTime dateOfCreation;
+    @Column
+    private boolean isStolen;
+    @Column
+    private long max_ALLOWED;
+    @Column
+    private long max_MANUAL;
+
 
     public Card() {
         this.dateOfCreation = LocalDateTime.now();
