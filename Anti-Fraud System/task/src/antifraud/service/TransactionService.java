@@ -2,6 +2,7 @@ package antifraud.service;
 
 import antifraud.mapper.TransactionMapper;
 import antifraud.model.Transaction;
+import antifraud.model.enums.TypeOfLimitsTransaction;
 import antifraud.model.enums.TypeOfOperationForLimit;
 import antifraud.model.request.TransactionRequest;
 import antifraud.model.enums.TransactionResult;
@@ -12,9 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.List;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -33,6 +32,9 @@ public class TransactionService {
 
         var maxAllowed = transaction.getCard().getMax_ALLOWED();
         var maxManual = transaction.getCard().getMax_MANUAL();
+
+        log.info("maxAllowed limit:"+maxAllowed);
+        log.info("maxManual limit:"+maxManual);
 
         if (amount <= maxAllowed) {
             return  TransactionResult.ALLOWED;
@@ -62,10 +64,10 @@ public class TransactionService {
     private List<Transaction> getListOfTransactionFromHistory(TransactionRequest req) {
         var card = cardService.findCreateCardByNumber(req.getNumber());
         var endDate = req.getDate().toInstant()
-                .atZone(ZoneId.systemDefault())
+                .atZone(ZoneId.of("Z"))
                 .toLocalDateTime();
         var startDate = endDate.minusHours(1);
-        log.info("------------try to find transaction by card "+card+" and date "+startDate+" end date "+endDate);
+        log.info("------------try to find transaction by card "+card.getNumber()+" and date "+startDate+" end date "+endDate);
         return transactionRepository.findByCardAndDateOfCreationBetween(card,startDate,endDate);
     }
 
@@ -81,21 +83,23 @@ public class TransactionService {
         return resultTransaction;
     }
 
-    private Transaction saveTransactionInHistory(TransactionRequest req){
+    private Transaction saveTransactionToHistory(TransactionRequest req){
         var transaction = transactionMapper.mapTransactionDTOToEntity(req);
+        var card = cardService.findCreateCardByNumber(req.getNumber());
+        transaction.setCard(card);
         transactionRepository.save(transaction);
-        log.info("Create transaction with card number "+transaction.getNumber());
+        log.info("Create transaction with card number "+card.getNumber());
         return transaction;
     }
 
     private void addTransactionResultToHistory(Transaction transaction, TransactionResult result){
         transaction.setResult(result);
         transactionRepository.save(transaction);
-        log.info("Update result for transaction with card number "+transaction.getNumber());
+        log.info("Update result for transaction with card number "+transaction.getCard().getNumber());
     }
 
     public TransactionResultResponse processTransaction(TransactionRequest req) {
-        var transaction = saveTransactionInHistory(req);
+        var transaction = saveTransactionToHistory(req);
         List<Transaction> listOfTransactionFromHistory = getListOfTransactionFromHistory(req);
 
         StringJoiner joiner = new StringJoiner(",");
@@ -157,23 +161,37 @@ public class TransactionService {
     public void setFeedbackToTransaction(Transaction transaction, TransactionResult feedback) {
         transaction.setFeedback(feedback);
         transactionRepository.save(transaction);
-        log.info("Update feedback for transaction with card number "+transaction.getNumber());
+        log.info("Update feedback for transaction with card number "+transaction.getCard().getNumber());
     }
 
     public Transaction getTransactionById(Long transactionId) {
         return transactionRepository.getReferenceById(transactionId);
     }
 
-    public TypeOfOperationForLimit getTypeOfOperationForLimit(Transaction transaction) {
+    public Map<TypeOfLimitsTransaction,TypeOfOperationForLimit> getTypeOfOperationForLimit(Transaction transaction) {
+        var returnMap = new HashMap<TypeOfLimitsTransaction,TypeOfOperationForLimit>();
         if (transaction.getFeedback() == TransactionResult.ALLOWED){
-            return TypeOfOperationForLimit.INCREASE;
+            returnMap.put(TypeOfLimitsTransaction.MAX_ALLOWED,TypeOfOperationForLimit.INCREASE);
+            returnMap.put(TypeOfLimitsTransaction.MAX_MANUAL_PROCESSING,
+                    transaction.getResult() == TransactionResult.PROHIBITED?TypeOfOperationForLimit.INCREASE:TypeOfOperationForLimit.NOCHANGE);
         }
+
         if (transaction.getFeedback() == TransactionResult.PROHIBITED){
-            return TypeOfOperationForLimit.DECREASE;
+            returnMap.put(TypeOfLimitsTransaction.MAX_MANUAL_PROCESSING,TypeOfOperationForLimit.DECREASE);
+            returnMap.put(TypeOfLimitsTransaction.MAX_ALLOWED,
+                    transaction.getResult() == TransactionResult.ALLOWED?TypeOfOperationForLimit.DECREASE:TypeOfOperationForLimit.NOCHANGE);
         }
+
         if (transaction.getFeedback() == TransactionResult.MANUAL_PROCESSING){
-            return transaction.getResult() == TransactionResult.ALLOWED?TypeOfOperationForLimit.DECREASE:TypeOfOperationForLimit.INCREASE;
+            returnMap.put(TypeOfLimitsTransaction.MAX_ALLOWED,
+                    transaction.getResult() == TransactionResult.ALLOWED?TypeOfOperationForLimit.DECREASE:TypeOfOperationForLimit.NOCHANGE);
+            returnMap.put(TypeOfLimitsTransaction.MAX_MANUAL_PROCESSING,
+                    transaction.getResult() == TransactionResult.PROHIBITED?TypeOfOperationForLimit.INCREASE:TypeOfOperationForLimit.NOCHANGE);
         }
-        return TypeOfOperationForLimit.NOCHANGE;
+
+        log.info("curr feedback "+transaction.getFeedback() );
+        log.info("curr result "+transaction.getResult() );
+        log.info("Map for change limits "+returnMap);
+        return returnMap;
     }
 }

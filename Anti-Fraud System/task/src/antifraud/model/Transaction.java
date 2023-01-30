@@ -1,9 +1,6 @@
 package antifraud.model;
 
-import antifraud.model.enums.Region;
 import antifraud.model.enums.TransactionResult;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,7 +13,6 @@ import java.time.LocalDateTime;
 public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonProperty("transactionId")
     private Long id;
 
     @Column
@@ -27,14 +23,12 @@ public class Transaction {
 
     @ManyToOne
     @JoinColumn(name="card_id", nullable=false)
-    @JsonIgnore
     private Card card;
 
     @Column
     private String region;
 
     @Column(name ="dateOfCreation")
-    @JsonProperty("date")
     private LocalDateTime dateOfCreation;
 
     @Column
@@ -43,18 +37,7 @@ public class Transaction {
 
     @Column
     @Enumerated(EnumType.STRING)
-    @JsonIgnore
     private TransactionResult feedback;
-
-    @JsonProperty("feedback")
-    public String getStrFeedback(){
-        return feedback == null?"":feedback.name();
-    }
-
-    @JsonProperty("number")
-    public String getNumber(){
-        return card.getNumber();
-    }
 
     @Override
     public String toString() {

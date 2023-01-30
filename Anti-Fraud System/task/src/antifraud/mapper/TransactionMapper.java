@@ -1,13 +1,12 @@
 package antifraud.mapper;
 
-import antifraud.configuration.TransactionProperties;
 import antifraud.model.Transaction;
 import antifraud.model.request.TransactionRequest;
+import antifraud.model.response.TransactionResponse;
 import antifraud.service.CardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
 import java.time.ZoneId;
 
 @Component
@@ -26,5 +25,19 @@ public class TransactionMapper {
                 .atZone(ZoneId.of("Z"))
                 .toLocalDateTime());
         return transaction;
+    }
+
+    public TransactionResponse mapTransactionEntityToDTO(Transaction transaction){
+        var transactionResponse = new TransactionResponse();
+        transactionResponse.setTransactionId(transaction.getId());
+        transactionResponse.setAmount(transaction.getAmount());
+        transactionResponse.setNumber(transaction.getCard()==null?"":transaction.getCard().getNumber());
+        transactionResponse.setResult(transaction.getResult()==null?"":transaction.getResult().name());
+        transactionResponse.setFeedback(transaction.getFeedback()==null?"":transaction.getFeedback().name());
+        transactionResponse.setIp(transaction.getIp());
+        transactionResponse.setRegion(transaction.getRegion());
+        transactionResponse.setDate(transaction.getDateOfCreation());
+
+        return transactionResponse;
     }
 }

@@ -2,10 +2,12 @@ package antifraud.controller;
 
 import antifraud.mapper.CardMapper;
 import antifraud.mapper.IPAddressMapper;
+import antifraud.mapper.TransactionMapper;
 import antifraud.model.IPAddress;
 import antifraud.model.enums.Region;
 import antifraud.model.Card;
 import antifraud.model.Transaction;
+import antifraud.model.enums.TransactionResult;
 import antifraud.model.enums.TypeOfOperationForLimit;
 import antifraud.model.request.CardRequest;
 import antifraud.model.request.IPAddressRequest;
@@ -36,6 +38,7 @@ public class TransactionController {
     StolenCardService stolenCardService;
     CardService cardService;
     CardMapper cardMapper;
+    TransactionMapper transactionMapper;
     IPAddressMapper ipAddressMapper;
     IPAddressService ipAddressService;
 
@@ -121,7 +124,7 @@ public class TransactionController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Number validate failed!");
         }
 
-        var cardEntity = cardMapper.mapCardDTOToEntity(req);
+        var cardEntity = cardService.findCreateCardByNumber(req.getNumber());
         var status = stolenCardService.saveCard(cardEntity);
 
         if (!status) {
@@ -162,8 +165,11 @@ public class TransactionController {
     }
 
     @PutMapping(value = "/transaction")
-    Transaction putFeedbackToTransaction(@RequestBody @Valid TransactionFeedbackRequest transactionFeedback) {
+    TransactionResponse putFeedbackToTransaction(@RequestBody @Valid TransactionFeedbackRequest transactionFeedback) {
         log.info("----------PUT /transaction "+transactionFeedback);
+        if (transactionFeedback.getFeedback() == TransactionResult.INVALID){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Feedback doesn't have right format (ALLOWED, MANUAL_PROCESSING, PROHIBITED)");
+        }
 
         Transaction currTransaction = transactionService.getTransactionById(transactionFeedback.getTransactionId());
         if (currTransaction == null){
@@ -174,24 +180,29 @@ public class TransactionController {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Feedback can not be set!");
         }
 
-        if (currTransaction.getFeedback() == null){
+        if (currTransaction.getFeedback() != null){
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Feedback is already set!");
         }
         transactionService.setFeedbackToTransaction(currTransaction,transactionFeedback.getFeedback());
 
-        TypeOfOperationForLimit type = transactionService.getTypeOfOperationForLimit(currTransaction);
-        cardService.updateLimitsForCard(currTransaction.getCard(),type, currTransaction.getAmount());
-
-        return currTransaction;
+        var mapOfTypes = transactionService.getTypeOfOperationForLimit(currTransaction);
+        cardService.updateLimitsForCard(currTransaction.getCard(),mapOfTypes, currTransaction.getAmount());
+        return transactionMapper.mapTransactionEntityToDTO(currTransaction);
     }
 
     @GetMapping(value = "/history")
-    List<Transaction> getAllFromHistoryTransaction() {
-        return transactionService.getAllTransactions();
+    List<TransactionResponse> getAllFromHistoryTransaction() {
+        var transList = transactionService.getAllTransactions();
+        var listResponse = new ArrayList<TransactionResponse>();
+
+        for (Transaction currTrans : transList) {
+            listResponse.add(transactionMapper.mapTransactionEntityToDTO(currTrans));
+        }
+        return listResponse;
     }
 
     @GetMapping(value = "/history/{number}")
-    List<Transaction> getTransactionFromHistoryByNumber(@PathVariable String number) {
+    List<TransactionResponse> getTransactionFromHistoryByNumber(@PathVariable String number) {
         log.info("----------GET /history "+number);
 
         if (!cardService.validateNumber(number)) {
@@ -202,6 +213,11 @@ public class TransactionController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction with card number "+number+" not found!");
         }
 
-        return transactionList;
+        var listResponse = new ArrayList<TransactionResponse>();
+
+        for (Transaction currTrans : transactionList) {
+            listResponse.add(transactionMapper.mapTransactionEntityToDTO(currTrans));
+        }
+        return listResponse;
     }
 }
