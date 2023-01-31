@@ -28,7 +28,6 @@ public class CardService {
     public Card findCreateCardByNumber(String number) {
         var currCard = cardRepository.findByNumber(number);
         if ( currCard != null) {
-            log.info("find card with number "+currCard.getNumber()+" isStolen "+currCard.isStolen());
             return currCard;
         }
         currCard = cardMapper.mapStringNumberToEntity(number);
@@ -47,10 +46,6 @@ public class CardService {
     public void updateLimitsForCard(Card card, Map<TypeOfLimitsTransaction,TypeOfOperationForLimit> mapOfTypes, Long amount) {
         var maxAllowed = card.getMax_ALLOWED();
         var maxManual = card.getMax_MANUAL();
-        log.info("amount for limit:"+amount);
-        log.info("current allow limit:"+maxAllowed);
-        log.info("current manual limit:"+maxManual);
-        log.info("current mapOfTypes limit:"+mapOfTypes.keySet());
 
         for (TypeOfLimitsTransaction currKey:mapOfTypes.keySet()) {
             var type = mapOfTypes.get(currKey);
@@ -66,8 +61,7 @@ public class CardService {
         card.setMax_MANUAL(maxManual);
 
         cardRepository.save(card);
-        log.info("Change limits for card with number "+card.getNumber());
-        log.info("New limits for card with number "+card.getNumber()+" Max_ALLOWED "+maxAllowed+" Max_MANUAL "+maxManual);
+        log.info("Change limits for card with number "+card.getNumber()+" Max_ALLOWED "+maxAllowed+" Max_MANUAL "+maxManual);
     }
 
     private long calculateLimitForType(long current_limit, TypeOfOperationForLimit type, Long amount) {
@@ -77,11 +71,6 @@ public class CardService {
         } else if (type == TypeOfOperationForLimit.DECREASE){
             new_limit = (long) Math.ceil(0.8 * current_limit - 0.2 * amount);
         }
-
-        log.info("new limit for type "+type+": "+new_limit);
-        log.info("new limit for amount "+amount);
-        log.info("new limit for current_limit "+current_limit);
-
         return new_limit;
     }
 }

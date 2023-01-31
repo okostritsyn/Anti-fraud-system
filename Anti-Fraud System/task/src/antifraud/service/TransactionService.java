@@ -33,9 +33,6 @@ public class TransactionService {
         var maxAllowed = transaction.getCard().getMax_ALLOWED();
         var maxManual = transaction.getCard().getMax_MANUAL();
 
-        log.info("maxAllowed limit:"+maxAllowed);
-        log.info("maxManual limit:"+maxManual);
-
         if (amount <= maxAllowed) {
             return  TransactionResult.ALLOWED;
         }else if (amount <= maxManual) {
@@ -67,13 +64,11 @@ public class TransactionService {
                 .atZone(ZoneId.of("Z"))
                 .toLocalDateTime();
         var startDate = endDate.minusHours(1);
-        log.info("------------try to find transaction by card "+card.getNumber()+" and date "+startDate+" end date "+endDate);
         return transactionRepository.findByCardAndDateOfCreationBetween(card,startDate,endDate);
     }
 
     private TransactionResult checkTransactionFieldInHistory(List<Transaction> transactions, Function<Transaction,String> field) {
         TransactionResult resultTransaction = TransactionResult.ALLOWED;
-        log.info("----------list of transactions "+transactions);
         var count = transactions.stream().map(field).distinct().count();
         if (count > 3) {
             resultTransaction = TransactionResult.PROHIBITED;
@@ -189,9 +184,6 @@ public class TransactionService {
                     transaction.getResult() == TransactionResult.PROHIBITED?TypeOfOperationForLimit.INCREASE:TypeOfOperationForLimit.NOCHANGE);
         }
 
-        log.info("curr feedback "+transaction.getFeedback() );
-        log.info("curr result "+transaction.getResult() );
-        log.info("Map for change limits "+returnMap);
         return returnMap;
     }
 }

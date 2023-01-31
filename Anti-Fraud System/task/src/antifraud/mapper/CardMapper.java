@@ -11,10 +11,6 @@ public class CardMapper {
         return new CardResponse(card.getId(),card.getNumber());
     }
 
-    public Card mapCardDTOToEntity(CardRequest req) {
-        return mapStringNumberToEntity(req.getNumber());
-    }
-
     public Card mapStringNumberToEntity(String number) {
         var card = new Card();
         card.setNumber(number);

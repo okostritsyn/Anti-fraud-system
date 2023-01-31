@@ -1,4 +1,4 @@
-package antifraud.configuration;
+package antifraud.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
