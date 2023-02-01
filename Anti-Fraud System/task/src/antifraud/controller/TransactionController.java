@@ -27,7 +27,6 @@ import java.util.List;
 @Slf4j
 public class TransactionController {
     TransactionService transactionService;
-    TransactionMapper transactionMapper;
     CardService cardService;
     IPAddressService ipAddressService;
 
@@ -77,7 +76,7 @@ public class TransactionController {
 
         var mapOfTypes = transactionService.getTypeOfOperationForLimit(currTransaction);
         cardService.updateLimitsForCard(currTransaction.getCard(),mapOfTypes, currTransaction.getAmount());
-        return transactionMapper.mapTransactionEntityToDTO(currTransaction);
+        return TransactionMapper.mapTransactionEntityToDTO(currTransaction);
     }
 
     @GetMapping(value = "/history")
@@ -86,7 +85,7 @@ public class TransactionController {
         var listResponse = new ArrayList<TransactionResponse>();
 
         for (Transaction currTrans : transList) {
-            listResponse.add(transactionMapper.mapTransactionEntityToDTO(currTrans));
+            listResponse.add(TransactionMapper.mapTransactionEntityToDTO(currTrans));
         }
         return listResponse;
     }
@@ -106,7 +105,7 @@ public class TransactionController {
         var listResponse = new ArrayList<TransactionResponse>();
 
         for (Transaction currTrans : transactionList) {
-            listResponse.add(transactionMapper.mapTransactionEntityToDTO(currTrans));
+            listResponse.add(TransactionMapper.mapTransactionEntityToDTO(currTrans));
         }
         return listResponse;
     }

@@ -18,7 +18,6 @@ import java.util.Map;
 @Slf4j
 public class CardService {
     private final CardRepository cardRepository;
-    private final CardMapper cardMapper;
     private final TransactionProperties props;
 
     public boolean validateNumber(String cardNumber) {
@@ -30,7 +29,7 @@ public class CardService {
         if ( currCard != null) {
             return currCard;
         }
-        currCard = cardMapper.mapStringNumberToEntity(number);
+        currCard = CardMapper.mapStringNumberToEntity(number);
         return createCard(currCard);
     }
 

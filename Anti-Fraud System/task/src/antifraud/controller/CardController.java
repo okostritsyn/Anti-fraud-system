@@ -24,7 +24,6 @@ import java.util.List;
 public class CardController {
     StolenCardService stolenCardService;
     CardService cardService;
-    CardMapper cardMapper;
 
     @PostMapping(value = "/stolencard")
     CardResponse registerCard(@RequestBody @Valid CardRequest req) {
@@ -41,7 +40,7 @@ public class CardController {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Card with such number already exist!");
         }
 
-        return cardMapper.mapStolenCardToCardDTO(cardEntity);
+        return CardMapper.mapStolenCardToCardDTO(cardEntity);
     }
 
     @GetMapping(value = "/stolencard")
@@ -50,7 +49,7 @@ public class CardController {
         var listResponse = new ArrayList<CardResponse>();
 
         for (Card card : cardList) {
-            var currCard = cardMapper.mapStolenCardToCardDTO(card);
+            var currCard = CardMapper.mapStolenCardToCardDTO(card);
             listResponse.add(currCard);
         }
         return listResponse;

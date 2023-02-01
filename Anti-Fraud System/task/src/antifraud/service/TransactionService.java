@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 public class TransactionService {
     private final IPAddressService ipAddressService;
     private final StolenCardService stolenCardService;
-    private final TransactionMapper transactionMapper;
     private final CardService cardService;
     private final TransactionRepository transactionRepository;
 
@@ -79,7 +78,7 @@ public class TransactionService {
     }
 
     private Transaction saveTransactionToHistory(TransactionRequest req){
-        var transaction = transactionMapper.mapTransactionDTOToEntity(req);
+        var transaction = TransactionMapper.mapTransactionDTOToEntity(req);
         var card = cardService.findCreateCardByNumber(req.getNumber());
         transaction.setCard(card);
         transactionRepository.save(transaction);

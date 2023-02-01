@@ -21,7 +21,6 @@ import java.util.List;
 @RequestMapping("/api/antifraud")
 @Slf4j
 public class IpAddressController {
-    IPAddressMapper ipAddressMapper;
     IPAddressService ipAddressService;
 
     @PostMapping(value = "/suspicious-ip")
@@ -32,14 +31,14 @@ public class IpAddressController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "IP validate failed!");
         }
 
-        var IPEntity = ipAddressMapper.mapIPDTOToEntity(req);
+        var IPEntity = IPAddressMapper.mapIPDTOToEntity(req);
         var status = ipAddressService.createIP(IPEntity);
 
         if (!status) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "IP already exist!");
         }
 
-        return ipAddressMapper.mapIPToIPDTO(IPEntity);
+        return IPAddressMapper.mapIPToIPDTO(IPEntity);
     }
 
     @GetMapping(value = "/suspicious-ip")
@@ -48,7 +47,7 @@ public class IpAddressController {
         var listResponse = new ArrayList<IPAddressResultResponse>();
 
         for (IPAddress address : addressList) {
-            var currIP = ipAddressMapper.mapIPToIPDTO(address);
+            var currIP = IPAddressMapper.mapIPToIPDTO(address);
             listResponse.add(currIP);
         }
 
