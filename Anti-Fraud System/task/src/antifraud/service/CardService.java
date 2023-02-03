@@ -1,6 +1,7 @@
 package antifraud.service;
 
 import antifraud.configuration.TransactionProperties;
+import antifraud.exception.ValidationDTOFailedException;
 import antifraud.mapper.CardMapper;
 import antifraud.model.Card;
 import antifraud.model.enums.TypeOfLimitsTransaction;
@@ -20,8 +21,10 @@ public class CardService {
     private final CardRepository cardRepository;
     private final TransactionProperties props;
 
-    public boolean validateNumber(String cardNumber) {
-        return LuhnCheckDigit.LUHN_CHECK_DIGIT.isValid(cardNumber);
+    public void validateNumber(String cardNumber) {
+        if (!LuhnCheckDigit.LUHN_CHECK_DIGIT.isValid(cardNumber)){
+            throw new ValidationDTOFailedException("Number validate failed!");
+        }
     }
 
     public Card findCreateCardByNumber(String number) {

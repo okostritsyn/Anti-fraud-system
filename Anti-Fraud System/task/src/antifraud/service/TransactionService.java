@@ -1,11 +1,18 @@
 package antifraud.service;
 
+import antifraud.exception.ConflictRegisterEntityException;
+import antifraud.exception.EntityNotExist;
+import antifraud.exception.UnprocessableBusinessException;
+import antifraud.exception.ValidationDTOFailedException;
 import antifraud.mapper.TransactionMapper;
 import antifraud.model.Transaction;
+import antifraud.model.enums.Region;
 import antifraud.model.enums.TypeOfLimitsTransaction;
 import antifraud.model.enums.TypeOfOperationForLimit;
+import antifraud.model.request.TransactionFeedbackRequest;
 import antifraud.model.request.TransactionRequest;
 import antifraud.model.enums.TransactionResult;
+import antifraud.model.response.TransactionResponse;
 import antifraud.model.response.TransactionResultResponse;
 import antifraud.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +50,7 @@ public class TransactionService {
 
     private TransactionResult checkTransactionCardNumberInBlackList(TransactionRequest req) {
         TransactionResult resultTransaction = TransactionResult.ALLOWED;
-        if (stolenCardService.findByNumber(req.getNumber()) != null) {
+        if (stolenCardService.findStolenByNumber(req.getNumber()) != null) {
             resultTransaction = TransactionResult.PROHIBITED;
         }
         return resultTransaction;
@@ -92,7 +99,20 @@ public class TransactionService {
         log.info("Update result for transaction with card number "+transaction.getCard().getNumber());
     }
 
+    private void validateTransactionData(TransactionRequest req) {
+        if (req.getRegion() == Region.INVALID) {
+            throw new ValidationDTOFailedException("Region validate failed!");
+        }
+        if (req.getDate() == null) {
+            throw new ValidationDTOFailedException("Date validate failed!");
+        }
+        ipAddressService.validateIPAddress(req.getIp());
+        cardService.validateNumber(req.getNumber());
+    }
+
     public TransactionResultResponse processTransaction(TransactionRequest req) {
+        validateTransactionData(req);
+
         var transaction = saveTransactionToHistory(req);
         List<Transaction> listOfTransactionFromHistory = getListOfTransactionFromHistory(req);
 
@@ -143,13 +163,31 @@ public class TransactionService {
         return new TransactionResultResponse(resultTransaction,messageInfo);
     }
 
-    public List<Transaction> getTransactionByNumber(String number) {
+    public List<TransactionResponse> getTransactionsByNumber(String number) {
+        cardService.validateNumber(number);
         var card = cardService.findCreateCardByNumber(number);
-        return transactionRepository.findByCard(card);
+        var transactionList = transactionRepository.findByCard(card);
+
+        if (transactionList.isEmpty()) {
+            throw new EntityNotExist("Transaction with card number "+number+" not found!");
+        }
+
+        var listResponse = new ArrayList<TransactionResponse>();
+
+        for (Transaction currTrans : transactionList) {
+            listResponse.add(TransactionMapper.mapTransactionEntityToDTO(currTrans));
+        }
+        return listResponse;
     }
 
-    public List<Transaction> getAllTransactions() {
-        return transactionRepository.findAll();
+    public List<TransactionResponse> getAllTransactions() {
+        var transList = transactionRepository.findAll();
+        var listResponse = new ArrayList<TransactionResponse>();
+
+        for (Transaction currTrans : transList) {
+            listResponse.add(TransactionMapper.mapTransactionEntityToDTO(currTrans));
+        }
+        return listResponse;
     }
 
     public void setFeedbackToTransaction(Transaction transaction, TransactionResult feedback) {
@@ -184,5 +222,38 @@ public class TransactionService {
         }
 
         return returnMap;
+    }
+
+    public Transaction setFeedback(TransactionFeedbackRequest transactionFeedback) {
+        validateTransactionFeedback(transactionFeedback);
+        Transaction currTransaction = getTransactionById(transactionFeedback.getTransactionId());
+        if (currTransaction == null){
+            throw new EntityNotExist("Transaction not found!");
+        }
+        checkCanChangeTransactionFeedback(currTransaction,transactionFeedback);
+        setFeedbackToTransaction(currTransaction,transactionFeedback.getFeedback());
+        updateLimits(currTransaction);
+        return currTransaction;
+    }
+
+    private void updateLimits(Transaction currTransaction) {
+        var mapOfTypes = getTypeOfOperationForLimit(currTransaction);
+        cardService.updateLimitsForCard(currTransaction.getCard(),mapOfTypes, currTransaction.getAmount());
+    }
+
+    private void checkCanChangeTransactionFeedback(Transaction currTransaction, TransactionFeedbackRequest transactionFeedback) {
+        if (currTransaction.getResult().equals(transactionFeedback.getFeedback())){
+            throw new UnprocessableBusinessException("Feedback can not be set!");
+        }
+
+        if (currTransaction.getFeedback() != null){
+            throw new ConflictRegisterEntityException("Feedback is already set!");
+        }
+    }
+
+    private void validateTransactionFeedback(TransactionFeedbackRequest transactionFeedback) {
+        if (transactionFeedback.getFeedback() == TransactionResult.INVALID){
+            throw new ValidationDTOFailedException("Feedback doesn't have right format (ALLOWED, MANUAL_PROCESSING, PROHIBITED)");
+        }
     }
 }
