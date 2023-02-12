@@ -1,4 +1,4 @@
-package antifraud.service;
+package antifraud.service.impl;
 
 import antifraud.model.enums.Role;
 import antifraud.repository.UserRepository;
@@ -18,10 +18,10 @@ public class CustomUserDetailService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         log.info("success authorization for " + username);
         var currUser = userRepository.findByName(username);
-        if (currUser != null){
-            var currRole = currUser.getRoles().stream().findFirst().orElse(Role.INVALID).name();
+        if (currUser.isPresent()){
+            var currRole = currUser.get().getRoles().stream().findFirst().orElse(Role.INVALID).name();
             log.info("success authorization for role " + currRole);
         }
-        return currUser;
+        return currUser.orElse(null);
     }
 }
