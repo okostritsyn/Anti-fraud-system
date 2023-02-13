@@ -45,6 +45,7 @@ public class SecurityConfig {
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS); // no session
+        http.cors();
         return http.build();
     }
 

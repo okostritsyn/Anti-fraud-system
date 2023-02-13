@@ -71,4 +71,11 @@ public class User implements UserDetails {
         roles.clear();
         roles.add(currRole);
     }
+
+    public Role getFirstRole() {
+        var rolesSet = getRoles();
+        Role currRole = null;
+        if (!rolesSet.isEmpty()) currRole = rolesSet.stream().findFirst().get();
+        return currRole;
+    }
 }

@@ -24,8 +24,12 @@ dependencies {
 
     implementation 'com.h2database:h2:1.4.200'
 
-    implementation group: 'commons-validator', name: 'commons-validator', version: '1.6'
-
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+    implementation group: 'commons-validator', name: 'commons-validator', version: '1.6'
+
+    implementation 'org.mapstruct:mapstruct:1.5.3.Final'
+    implementation group: 'org.projectlombok', name: 'lombok-mapstruct-binding', version: '0.1.0'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
 }

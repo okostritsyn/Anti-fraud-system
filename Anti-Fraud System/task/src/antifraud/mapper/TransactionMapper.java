@@ -8,18 +8,19 @@ import java.time.ZoneId;
 
 public class TransactionMapper {
     public static Transaction mapTransactionDTOToEntity(TransactionRequest transactionRequest){
-        var transaction = new Transaction();
+        /*var transaction = new Transaction();
         transaction.setAmount(transactionRequest.getAmount());
         transaction.setIp(transactionRequest.getIp());
         transaction.setRegion(transactionRequest.getRegion().toString());
         transaction.setDateOfCreation(transactionRequest.getDate().toInstant()
                 .atZone(ZoneId.of("Z"))
                 .toLocalDateTime());
-        return transaction;
+        return transaction;*/
+        return CustomMapper.INSTANCE.mapTransactionDTOToEntity(transactionRequest);
     }
 
     public static TransactionResponse mapTransactionEntityToDTO(Transaction transaction){
-        var transactionResponse = new TransactionResponse();
+        /*var transactionResponse = new TransactionResponse();
         transactionResponse.setTransactionId(transaction.getId());
         transactionResponse.setAmount(transaction.getAmount());
         transactionResponse.setNumber(transaction.getCard()==null?"":transaction.getCard().getNumber());
@@ -27,8 +28,10 @@ public class TransactionMapper {
         transactionResponse.setFeedback(transaction.getFeedback()==null?"":transaction.getFeedback().name());
         transactionResponse.setIp(transaction.getIp());
         transactionResponse.setRegion(transaction.getRegion());
-        transactionResponse.setDate(transaction.getDateOfCreation());
+        transactionResponse.setDate(transaction.getDateOfCreation());*/
 
-        return transactionResponse;
+        //return transactionResponse;
+
+        return CustomMapper.INSTANCE.mapTransactionEntityToDTO(transaction);
     }
 }

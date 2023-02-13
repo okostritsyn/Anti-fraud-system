@@ -69,6 +69,15 @@ public class UserServiceImpl implements UserService {
         return user.get();
     }
 
+    @Override
+    public Role getRoleForUser(String username) {
+        var user = findByName(username);
+        if (user.isEmpty()) {
+            throw new EntityNotExist("User not found!");
+        }
+        return user.get().getFirstRole();
+    }
+
     public List<UserResultResponse> getListOfUsers(){
         var usersList = userRepository.findAll();
         var listResponse =  new ArrayList<UserResultResponse>();

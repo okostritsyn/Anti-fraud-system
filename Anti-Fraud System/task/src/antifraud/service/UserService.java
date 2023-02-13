@@ -18,5 +18,7 @@ public interface UserService {
 
     User setRoleForUser(String username, Role role);
 
+    Role getRoleForUser(String username);
+
     List<UserResultResponse> getListOfUsers();
 }
