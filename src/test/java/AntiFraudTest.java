@@ -1,3 +1,6 @@
+/**
+
+
 import antifraud.AntiFraudApplication;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -758,10 +761,7 @@ public class AntiFraudTest extends SpringTest {
         super(AntiFraudApplication.class, "../service_db.mv.db");
     }
 
-    /**
-     * Method for restarting application
-     *
-     */
+
     private CheckResult restartApplication() {
         try {
             reloadSpring();
@@ -1940,3 +1940,4 @@ public class AntiFraudTest extends SpringTest {
 
     };
 }
+*/
